@@ -1,11 +1,5 @@
 package examples;
 
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Collections;
-
-import objects.Alphabet;
-
 import automatas.DFA;
 import automatas.NFA;
 import automatas.FST;
@@ -57,6 +51,9 @@ public class test {
         n.addArrow(4, 'e', 4);
         
         DFA p = NFA.NFAtoDFA(n);
+        System.out.println(p);
+        NFA q = DFA.DFAtoNFA(p);
+        System.out.println(q);
         
         FST t = new FST(1, "Translater");
         

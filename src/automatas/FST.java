@@ -2,11 +2,9 @@ package automatas;
 
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import objects.State;
 import objects.Alphabet;
 
 
@@ -222,7 +220,7 @@ public class FST extends DFA{
     
 /**
  * State for a FST.
- * @author vick0
+ * @author vick08bv
  */
 protected class FSTState extends DFAState{   
     

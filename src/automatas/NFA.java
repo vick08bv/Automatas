@@ -1,7 +1,6 @@
 package automatas;
 
 
-import java.util.Set;
 import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,44 +50,42 @@ public class NFA extends FSA{
     
     
     /**
-     * Makes a DFA equivalent to given DFA.
-     * @param nfa NFA to be "converted".
+     * Makes a DFA equivalent to given NFA.
+     * @param n NFA to be "converted".
      * @return A new DFA.
      */
-    public static DFA NFAtoDFA(NFA nfa){
-
-        HashMap<Integer, NFAState> NfaStates = nfa.states;
+    public static DFA NFAtoDFA(NFA n){
         
-        int DfaSize = (int) Math.pow(2, NfaStates.size());
+        int DfaSize = (int) Math.pow(2, n.numberStates());
         
         if(DfaSize == 0){
-            return new DFA(nfa.id(), nfa.name());
+            return new DFA(n.id(), n.name());
         }
         
-        DFA dfa = new DFA(nfa.id(), nfa.name()); 
-        for(Character character: nfa.alphabet.alphabet()){
-            dfa.addToAlphabet(character);
+        DFA p = new DFA(n.id(), n.name()); 
+        for(Character character: n.alphabet.alphabet()){
+            p.addToAlphabet(character);
         }
         
         ArrayList<Integer> dfaCurrent = new ArrayList<>(DfaSize);
-        dfaCurrent.addAll(nfa.states.keySet());
+        dfaCurrent.addAll(n.states.keySet());
         
         ArrayList<ArrayList<Integer>> dfaStates = powerSet(dfaCurrent);
         
         dfaStates.forEach(Collections::sort);
         
         Collections.sort(dfaStates, (ArrayList<Integer> i, ArrayList<Integer> j) -> {
-            int n = i.size(); int m = j.size();            
-            if(n == m){
-                for(int k = 0; k < n; k++){
+            int l = i.size(); int m = j.size();            
+            if(l == m){
+                for(int k = 0; k < l; k++){
                     if(i.get(k) < j.get(k)){ return -1; }
                     if(i.get(k) > j.get(k)){ return 1; }
                 } return 0;
             }
-            if(n < m){ return -1; } return 1;
+            if(l < m){ return -1; } return 1;
         });
         
-        dfa.addState("{}");
+        p.addState("{}");
         
         String dfaStateName = "";
         
@@ -97,22 +94,22 @@ public class NFA extends FSA{
             for(int j = 0; j < dfaStates.get(i).size(); j++){            
                 dfaStateName += String.valueOf(dfaStates.get(i).get(j)) + ", ";             
             }
-            dfa.addState(dfaStateName.substring(0, dfaStateName.length()-2) + "}");
+            p.addState(dfaStateName.substring(0, dfaStateName.length()-2) + "}");
         }
         
         dfaCurrent.clear();
         
-        nfa.start();
-        nfa.readNull();
-        dfaCurrent.addAll(nfa.currentStates());
+        n.start();
+        n.readNull();
+        dfaCurrent.addAll(n.currentStates());
         Collections.sort(dfaCurrent);
         
-        dfa.setInitialState(dfaStates.indexOf(dfaCurrent)+1);
+        p.setInitialState(dfaStates.indexOf(dfaCurrent)+1);
         
         for(int i = 1; i < DfaSize ; i++){
-            for(int finalState: nfa.finalStates()){
+            for(int finalState: n.finalStates()){
                 if(dfaStates.get(i).contains(finalState)){
-                    dfa.addFinalState(i+1);
+                    p.addFinalState(i+1);
                     break;
                 }
             }
@@ -122,19 +119,19 @@ public class NFA extends FSA{
         HashSet<Integer> nfaCurrent = new HashSet<>();
         
         for(int i = 1; i < DfaSize ; i++){
-            for(Character character: dfa.alphabet()){
+            for(Character character: p.alphabet()){
                 
                 dfaCurrent.clear();
                 nfaCurrent.clear();
                 nfaCurrent.addAll(dfaStates.get(i));
                 
-                nfa.setCurrentStates(nfaCurrent);
-                nfa.readCharacter(character);
+                n.setCurrentStates(nfaCurrent);
+                n.readCharacter(character);
                 
-                dfaCurrent.addAll(nfa.currentStates());
+                dfaCurrent.addAll(n.currentStates());
                 Collections.sort(dfaCurrent);
                 
-                dfa.addArrow(i+1, character, dfaStates.indexOf(dfaCurrent)+1);
+                p.addArrow(i+1, character, dfaStates.indexOf(dfaCurrent)+1);
                 
                 possibleStates.add(dfaStates.indexOf(dfaCurrent)+1);
             
@@ -142,16 +139,228 @@ public class NFA extends FSA{
         }
         
         for(int i = 1; i <= DfaSize ; i++){
-            if(!possibleStates.contains(i) && dfa.initialState() != i){
-                dfa.deleteState(i);
+            if(!possibleStates.contains(i) && p.initialState() != i){
+                p.deleteState(i);
             }
         }
         
-        for(Character character: dfa.alphabet()){
-            dfa.addArrow(1, character, 1);
+        for(Character character: p.alphabet()){
+            p.addArrow(1, character, 1);
         }
 
-        return dfa;
+        return p;
+
+    }
+    
+    
+    /**
+     * Makes a NFA that recognizes the union of the languages of the given NFAs.
+     * @param m First NFA.
+     * @param n Second NFA.
+     * @return A new NFA.
+     */
+    public static NFA Union(NFA m, NFA n){
+        
+        int mSize = m.numberStates();
+        int nSize = n.numberStates();
+        
+        if(mSize == 0 || nSize == 0 || !(m.alphabet.equals(n.alphabet))){
+            return new NFA(m.id + n.id, m.name + " U " + n.name);
+        }
+        
+        NFA p = new NFA(m.id + n.id, m.name + "U" + n.name); 
+        for(Character character: m.alphabet.alphabet()){
+            p.addToAlphabet(character);
+        }
+        
+        p.addState("Initial");
+        p.setInitialState(1);
+        
+        ArrayList<Integer> mstates = new ArrayList<>(mSize + 1);
+        mstates.addAll(m.states.keySet());
+        Collections.sort(mstates);
+        
+        for(int i = 0; i < mSize; i++){
+            p.addState(m.name + " " + String.valueOf(mstates.get(i)));
+            if(m.finals.contains(mstates.get(i))){
+                p.addFinalState(i + 2);
+            }
+        }
+        
+        ArrayList<Integer> nstates = new ArrayList<>(nSize + 1);
+        nstates.addAll(n.states.keySet());
+        Collections.sort(nstates);
+        
+        for(int i = 0; i < nSize; i++){
+            p.addState(n.name + " " + String.valueOf(nstates.get(i)));
+            if(n.finals.contains(nstates.get(i))){
+                p.addFinalState(i + mSize + 2);
+            }
+        }
+        
+        
+        for(int i = 0; i < mSize; i++){
+            for(Character character: p.alphabet()){
+                for(int idI: m.states.get(mstates.get(i)).transitions.get(character)){
+                    p.addArrow(i + 2, character, mstates.indexOf(idI) + 2);
+                }
+            }
+            for(int idI: m.states.get(mstates.get(i)).transitions.get(null)){
+                p.addArrow(i + 2, null, mstates.indexOf(idI) + 2);
+            }
+            
+        }
+        
+        
+        for(int i = 0; i < nSize; i++){
+            for(Character character: p.alphabet()){
+                for(int idI: n.states.get(nstates.get(i)).transitions.get(character)){
+                    p.addArrow(i + nSize + 2, character, nstates.indexOf(idI) + nSize + 2);
+                }
+            }
+            for(int idI: n.states.get(nstates.get(i)).transitions.get(null)){
+                p.addArrow(i + nSize + 2, null, nstates.indexOf(idI) + nSize + 2);
+            }
+            
+        }
+
+        p.addArrow(1, null, mstates.indexOf(m.initial) + 2);
+        p.addArrow(1, null, nstates.indexOf(n.initial) + nSize + 2);
+
+        return p;
+
+    }
+    
+    
+    /**
+     * Makes a NFA that recognizes the concatenaton of the languages of the given NFAs.
+     * @param m First NFA.
+     * @param n Second NFA.
+     * @return A new NFA.
+     */
+    public static NFA Concatenation(NFA m, NFA n){
+        
+        int mSize = m.numberStates();
+        int nSize = n.numberStates();
+        
+        if(mSize == 0 || nSize == 0 || !(m.alphabet.equals(n.alphabet))){
+            return new NFA(m.id + n.id, m.name + "U" + n.name);
+        }
+        
+        NFA p = new NFA(m.id + n.id, m.name + " O " + n.name); 
+        for(Character character: m.alphabet.alphabet()){
+            p.addToAlphabet(character);
+        }
+        
+        
+        ArrayList<Integer> mstates = new ArrayList<>(mSize + 1);
+        mstates.addAll(m.states.keySet());
+        Collections.sort(mstates);
+        
+        for(int i = 0; i < mSize; i++){
+            p.addState(m.name + " " + String.valueOf(mstates.get(i)));
+        }
+        
+        p.setInitialState(mstates.indexOf(m.initial) + 1);
+        
+        ArrayList<Integer> nstates = new ArrayList<>(nSize + 1);
+        nstates.addAll(n.states.keySet());
+        Collections.sort(nstates);
+        
+        for(int i = 0; i < nSize; i++){
+            p.addState(n.name + " " + String.valueOf(nstates.get(i)));
+            if(n.finals.contains(nstates.get(i))){
+                p.addFinalState(i + mSize + 2);
+            }
+        }
+        
+        
+        for(int i = 0; i < mSize; i++){
+            for(Character character: p.alphabet()){
+                for(int idI: m.states.get(mstates.get(i)).transitions.get(character)){
+                    p.addArrow(i + 2, character, mstates.indexOf(idI) + 2);
+                }
+            }
+            for(int idI: m.states.get(mstates.get(i)).transitions.get(null)){
+                p.addArrow(i + 2, null, mstates.indexOf(idI) + 2);
+            }
+            
+        }
+        
+        
+        for(int i = 0; i < nSize; i++){
+            for(Character character: p.alphabet()){
+                for(int idI: n.states.get(nstates.get(i)).transitions.get(character)){
+                    p.addArrow(i + nSize + 2, character, nstates.indexOf(idI) + nSize + 2);
+                }
+            }
+            for(int idI: n.states.get(nstates.get(i)).transitions.get(null)){
+                p.addArrow(i + nSize + 2, null, nstates.indexOf(idI) + nSize + 2);
+            }
+            
+        }
+
+        for(int i: m.finals){
+            p.addArrow(mstates.indexOf(i + 1), null, 
+                       mstates.indexOf(m.initial) + 1);
+        }
+
+        return p;
+
+    }
+    
+    
+    /**
+     * Makes a NFA that recognizes the kleene star of the language of the given NFA.
+     * @param n Given NFA.
+     * @return A new NFA.
+     */
+    public static NFA KleeneStar(NFA n){
+        
+        int nSize = n.numberStates();
+        
+        NFA p = new NFA(n.id, n.name + " * ");
+        
+        if(nSize == 0){
+            return p;
+        }
+        
+        for(Character character: n.alphabet.alphabet()){
+            p.addToAlphabet(character);
+        }
+        
+        p.addState("Initial");
+        p.setInitialState(1);
+        
+        ArrayList<Integer> nstates = new ArrayList<>(nSize + 1);
+        nstates.addAll(n.states.keySet());
+        Collections.sort(nstates);
+        
+        for(int i = 0; i < nSize; i++){
+            p.addState(n.states.get(nstates.get(i)).getName());
+            if(n.finals.contains(nstates.get(i))){
+                p.addFinalState(i + 2);
+            }
+        }
+        
+        
+        for(int i = 0; i < nSize; i++){
+            for(Character character: p.alphabet()){
+                for(int idI: n.states.get(nstates.get(i)).transitions.get(character)){
+                    p.addArrow(i + 2, character, nstates.indexOf(idI) + 2);
+                }
+            }
+            for(int idI: n.states.get(nstates.get(i)).transitions.get(null)){
+                p.addArrow(i + 2, null, nstates.indexOf(idI) + 2);
+            }
+            
+        } 
+
+        for(int i: n.finals){
+            p.addArrow(nstates.indexOf(i + 1), null, 1);
+        }
+
+        return p;
 
     }
     
@@ -165,6 +374,7 @@ public class NFA extends FSA{
     public NFA(int id, String name){
         
         super(id, name);
+        this.initial = 0;
         this.states = new HashMap<>();
         this.finals = new HashSet<>();
         this.current = new HashSet<>();
@@ -174,7 +384,8 @@ public class NFA extends FSA{
     
     public NFA(int id, String name, Alphabet alphabet){
         
-        super(id, name, alphabet);
+        super(id, name, alphabet);       
+        this.initial = 0;
         this.states = new HashMap<>();
         this.finals = new HashSet<>();
         this.current = new HashSet<>();
@@ -182,7 +393,7 @@ public class NFA extends FSA{
     }
     
     
-    public int initialStates(){    
+    public int initialState(){    
         return this.initial;        
     }
     

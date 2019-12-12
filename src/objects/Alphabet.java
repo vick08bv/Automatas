@@ -2,6 +2,7 @@ package objects;
 
 
 import java.util.HashSet;
+import java.util.Objects;
 
 
 /**
@@ -118,6 +119,33 @@ public class Alphabet {
     
         return this.characters.containsAll(alphabet.alphabet());
     
+    }
+
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + Objects.hashCode(this.characters);
+        return hash;
+    }
+
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Alphabet other = (Alphabet) obj;
+        if (!Objects.equals(this.characters, other.characters)) {
+            return false;
+        }
+        return true;
     }
     
     

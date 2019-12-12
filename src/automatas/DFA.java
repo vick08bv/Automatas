@@ -11,10 +11,61 @@ import objects.Alphabet;
 
 
 /**
- * Deterministic finite automata.
+ * Classic finite state automata.
  * @author vick08bv
  */
 public class DFA extends FSA{
+    
+    
+    /**
+     * Casts a DFA to a NFA.
+     * @param m Given DFA.
+     * @return The same DFA but with NFA structure.
+     */
+    public static NFA DFAtoNFA(DFA m){
+        
+        int mSize = m.numberStates();
+        
+        NFA p = new NFA(m.id, m.name);
+        
+        if(mSize == 0){
+            return p;
+        }
+        
+        for(Character character: m.alphabet.alphabet()){
+            p.addToAlphabet(character);
+        }
+        
+        ArrayList<Integer> mstates = new ArrayList<>(mSize);
+        mstates.addAll(m.states.keySet());
+        Collections.sort(mstates);
+        
+        for(int i = 0; i < mSize; i++){
+            
+            p.addState(m.states.get(mstates.get(i)).getName());
+            
+            if(m.finals.contains(mstates.get(i))){
+                p.addFinalState(i + 1);
+            }
+            
+        }
+        
+        p.setInitialState(mstates.indexOf(m.initial) + 1);
+        
+        for(int i = 0; i < mSize; i++){
+            for(Character character: p.alphabet()){
+                
+                p.addArrow(i + 1, character, 
+                mstates.indexOf(
+               m.states.get(mstates.get(i)).
+            transitions.get(character)) + 1);
+            
+            }            
+        }
+
+        return p;
+
+    }
     
     
     protected int initial;
@@ -26,8 +77,8 @@ public class DFA extends FSA{
     public DFA(int id, String name){
         
         super(id, name);
-        this.current = -1;
-        this.initial = -1;
+        this.current = 0;
+        this.initial = 0;
         this.states = new HashMap<>();
         this.finals = new HashSet<>();
         
@@ -37,8 +88,8 @@ public class DFA extends FSA{
     public DFA(int id, String name, Alphabet alphabet){
         
         super(id, name, alphabet);
-        this.current = -1;
-        this.initial = -1;
+        this.current = 0;
+        this.initial = 0;
         this.states = new HashMap<>();
         this.finals = new HashSet<>();
         
@@ -358,7 +409,7 @@ public class DFA extends FSA{
     
 /**
  * State for a DFA.
- * @author vick0
+ * @author vick08bv
  */
 protected class DFAState extends State{   
     
