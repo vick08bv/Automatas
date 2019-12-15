@@ -18,10 +18,8 @@ public class Alphabet {
     /**
      * New alphabet in blank.
      */
-    public Alphabet(){
-    
-        this.characters = new HashSet<>();
-    
+    public Alphabet(){   
+        this.characters = new HashSet<>();    
     }
     
     
@@ -29,16 +27,11 @@ public class Alphabet {
      * New alphabet from a sequence of characters.
      * @param characters characters to add. 
      */
-    public Alphabet(CharSequence characters){
-    
-        this.characters = new HashSet<>();
-        
-        for(int i = 0; i < characters.length(); i++){
-        
-            this.characters.add(characters.charAt(i));
-        
+    public Alphabet(CharSequence characters){   
+        this.characters = new HashSet<>();        
+        for(int i = 0; i < characters.length(); i++){       
+            this.characters.add(characters.charAt(i));        
         }
-
     }
     
     
@@ -47,10 +40,8 @@ public class Alphabet {
      * @param character character.
      * @return if the alphabet contains the character.
      */
-    public boolean containsCharacter(Character character){
-    
-        return this.characters.contains(character);
-    
+    public boolean containsCharacter(Character character){   
+        return this.characters.contains(character);   
     }
     
     
@@ -59,10 +50,9 @@ public class Alphabet {
      * @param character character to add.
      * @return if character was added.
      */
-    public boolean addCharacter(Character character){
-    
-        return this.characters.add(character);
-    
+    public boolean addCharacter(Character character){       
+        if(character == null){return false;}
+        return this.characters.add(character);   
     }
     
     
@@ -71,20 +61,16 @@ public class Alphabet {
      * @param character character to remove.
      * @return if the character was removed.
      */
-    public boolean removeCharacter(Character character){
-    
-        return this.characters.remove(character);
-    
+    public boolean removeCharacter(Character character){   
+        return this.characters.remove(character);   
     }
     
     
     /**
      * Removes all the characters in the alphabet.
      */
-    public void clearAlphabet(){
-    
-        this.characters.clear();
-    
+    public void clearAlphabet(){   
+        this.characters.clear();    
     }
     
     
@@ -93,9 +79,9 @@ public class Alphabet {
      * @return the set of characters in the alphabet.
      */
     public HashSet<Character> alphabet(){
-        
-        return this.characters;
-    
+        HashSet<Character> alphabet = new HashSet<>();
+        alphabet.addAll(this.characters);
+        return alphabet;
     }
     
     
@@ -104,9 +90,7 @@ public class Alphabet {
      * @return the size.
      */
     public int getSize(){
-    
         return this.characters.size();
-    
     }
     
     
@@ -116,9 +100,7 @@ public class Alphabet {
      * @return if the alphabet is a subset of the other.
      */
     public boolean isSubset(Alphabet alphabet){
-    
         return this.characters.containsAll(alphabet.alphabet());
-    
     }
 
     

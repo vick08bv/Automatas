@@ -11,10 +11,10 @@ import java.util.HashSet;
  */
 public abstract class FSA {
     
-    protected final int id;
-    protected int idStates;
-    protected String name;
-    protected Alphabet alphabet;
+    final int id;
+    int idStates;
+    String name;
+    Alphabet alphabet;
     
     
     protected FSA(int id, String name){
@@ -23,16 +23,6 @@ public abstract class FSA {
         this.idStates = 1;
         this.name = name;
         this.alphabet = new Alphabet();
-        
-    }
-    
-    
-    protected FSA(int id, String name, Alphabet alphabet){
-    
-        this.id = id;
-        this.idStates = 1;
-        this.name = name;
-        this.alphabet = alphabet;
         
     }
     
@@ -48,18 +38,13 @@ public abstract class FSA {
     
     
     public boolean containsCharacter(Character character){
-    
-        return this.alphabet.containsCharacter(character);
-    
+        return this.alphabet.containsCharacter(character);    
     }
     
     
     public HashSet<Character> alphabet(){
-    
         return this.alphabet.alphabet();
-    
     }
-    
     
     public abstract int setInitialState(int id);
     

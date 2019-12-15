@@ -2,6 +2,7 @@ package automatas;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -15,7 +16,7 @@ import objects.Alphabet;
 public class FST extends DFA{
     
     
-    private Alphabet walphabet;
+    Alphabet walphabet;
     
     
     public FST(int id, String name){
@@ -26,15 +27,7 @@ public class FST extends DFA{
     }
     
     
-    public FST(int id, String name, Alphabet alphabet){
-        
-        super(id, name, alphabet);
-        this.walphabet = new Alphabet();
-        
-    }
-    
-
-    public boolean addToWAlphabet(char character){
+    public boolean addToWAlphabet(Character character){
         return this.walphabet.addCharacter(character);
     }
 
@@ -46,7 +39,7 @@ public class FST extends DFA{
     }
     
     
-    public boolean removeFromWAlphabet(char character) {       
+    public boolean removeFromWAlphabet(Character character) {       
         return this.walphabet.removeCharacter(character);        
     }
     
@@ -71,13 +64,13 @@ public class FST extends DFA{
             state.transductions.put(character, '\000');
         }
         for(Character character: this.alphabet.alphabet()){
-            state.transitions.put(character, 0);
+            state.transitions.put(character, new HashSet<>(2));
         }
         this.states.put(this.idStates, state);
         this.idStates++;
 
     }
-    
+
     
     public boolean addArrow(int idD, Character character, int idI, Character wcharacter){
     
@@ -86,7 +79,16 @@ public class FST extends DFA{
                    this.walphabet.containsCharacter(wcharacter)){
             
             FSTState state = (FSTState) this.states.get(idD);
-            state.transitions.put(character, idI);
+            
+            HashSet<Integer> transitions = state.transitions.get(character);
+            
+            if(transitions.isEmpty()){
+                transitions.add(idI);
+            } else {
+                transitions.clear();
+                transitions.add(idI);
+            }
+            
             state.transductions.put(character, wcharacter);
             
             return true;
@@ -124,7 +126,7 @@ public class FST extends DFA{
 
     public Character transduceCharacter(Character character){
         
-        FSTState state = (FSTState) this.states.get(this.current);
+        FSTState state = (FSTState) this.states.get(this.currentStates.iterator().next());
         Character tCharacter = state.transductions.get(character);
         super.readCharacter(character);
         
@@ -147,10 +149,8 @@ public class FST extends DFA{
     
     
     public String transduce(CharSequence string) {
-        
         this.start();
         return this.transduceString(string);
-        
     }
     
     
@@ -190,8 +190,8 @@ public class FST extends DFA{
         
         ArrayList<Integer> ids = new ArrayList<>(this.states.keySet().size());
         ids.addAll(this.states.keySet());
-        ArrayList<Integer> idsF = new ArrayList<>(this.finals.size());
-        idsF.addAll(this.finals);
+        ArrayList<Integer> idsF = new ArrayList<>(this.acceptStates.size());
+        idsF.addAll(this.acceptStates);
         Collections.sort(ids);
         Collections.sort(idsF);
         
@@ -207,7 +207,7 @@ public class FST extends DFA{
             string += "\n\n" + this.states.get(id).toString();
         }
         
-        string += "\n\nInitial State: " + String.valueOf(this.initial);
+        string += "\n\nInitial State: " + String.valueOf(this.initialState);
         
         string += "\n\nFinal States:";
         for(Integer id: idsF){
@@ -222,13 +222,17 @@ public class FST extends DFA{
  * State for a FST.
  * @author vick08bv
  */
-protected class FSTState extends DFAState{   
+class FSTState extends NFAState{   
     
-    protected HashMap<Character, Character> transductions;
     
-    protected FSTState(int id, String name){
+    HashMap<Character, Character> transductions;
+    
+    
+    FSTState(int id, String name){
+        
         super(id, name);
         this.transductions = new HashMap<>();
+    
     }
 
     @Override
